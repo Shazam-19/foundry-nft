@@ -19,7 +19,17 @@ contract BasicNFT is ERC721 {
         s_tokenIdCounter++;
     }
 
+    /**
+     * @notice Returns the metadata URI for a given token ID.
+     * @dev Overrides OpenZeppelin's default tokenURI(). Calls _requireOwned()
+     *      first to follow ERC721 best practice: querying the URI of a token
+     *      that was never minted (or has been burned) reverts with
+     *      ERC721NonexistentToken instead of silently returning an empty string.
+     * @param tokenId The ID of the token to query.
+     * @return The URI string associated with `tokenId`.
+     */
     function tokenURI(uint256 tokenId) public view override returns (string memory) {
+        _requireOwned(tokenId);
         return s_tokenIdToURI[tokenId];
     }
 }
