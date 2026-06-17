@@ -9,6 +9,11 @@ contract BasicNFTTest is Test {
     DeployBasicNFT public deploy;
     BasicNFT public basicNft;
 
+    address public USER = makeAddr("user");
+
+    string public constant PUG =
+        "ipfs://bafybeig37ioir76s7mg5oobetncojcm3c3hxasyd4rvid4jqhy4gkaheg4/?filename=0-PUG.json";
+
     function setUp() external {
         deploy = new DeployBasicNFT();
         basicNft = deploy.run();
@@ -22,6 +27,53 @@ contract BasicNFTTest is Test {
 
         // Genral Solidity code
         assert(keccak256(abi.encodePacked(expectedName)) == keccak256(abi.encodePacked(actualName)));
+    }
+
+    /**
+     * @notice Tests that a user can successfully mint an NFT and that the contract
+     *         state correctly reflects the mint (token URI and balance).
+     * @dev This test simulates a mint call from USER, then verifies two things:
+     *      1. The minted token's URI matches the URI passed into mintNft().
+     *      2. The user's NFT balance increased to 1 after minting.
+     *
+     *      Foundry's `vm.prank(USER)` makes the *next* call appear as if it was
+     *      sent by USER, even though the test contract is the actual caller.
+     *
+     *      Since Solidity strings can't be compared directly with `==`,
+     *      we hash both strings with keccak256 and compare the hashes instead.
+     */
+    function testCanMintAndHaveBalance() public {
+        // Make the next call appear to come from USER instead of the test contract
+        vm.prank(USER);
+
+        // USER mints an NFT, passing in PUG as the token URI (e.g., an image/metadata link)
+        basicNft.mintNft(PUG);
+
+        // The first NFT ever minted should have token ID 0 (IDs start at 0 and increment)
+        uint256 expectedTokenId = 0;
+
+        // We expect the stored token URI to match what we passed into mintNft()
+        string memory expectedTokenURI = PUG;
+
+        // --- Check 1: Token URI correctness ---
+        // Fetch the actual URI stored on-chain for token ID 0
+        string memory actualTokenURI = basicNft.tokenURI(expectedTokenId);
+
+        // Compare strings by hashing them (Solidity has no native string equality operator)
+        assert(
+            keccak256(abi.encodePacked(expectedTokenURI)) ==
+            keccak256(abi.encodePacked(actualTokenURI))
+        );
+
+        // --- Check 2: Balance correctness ---
+        // USER should now own exactly 1 NFT after minting once
+        uint256 expectedBalance = 1;
+
+        // Fetch USER's actual NFT balance from the contract
+        uint256 actualBalance = basicNft.balanceOf(USER);
+
+        // assertEq gives clearer failure output than assert() (shows both values on failure)
+        assertEq(expectedBalance, actualBalance);
     }
 }
 
