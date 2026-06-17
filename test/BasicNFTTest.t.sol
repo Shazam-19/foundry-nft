@@ -60,10 +60,7 @@ contract BasicNFTTest is Test {
         string memory actualTokenURI = basicNft.tokenURI(expectedTokenId);
 
         // Compare strings by hashing them (Solidity has no native string equality operator)
-        assert(
-            keccak256(abi.encodePacked(expectedTokenURI)) ==
-            keccak256(abi.encodePacked(actualTokenURI))
-        );
+        assert(keccak256(abi.encodePacked(expectedTokenURI)) == keccak256(abi.encodePacked(actualTokenURI)));
 
         // --- Check 2: Balance correctness ---
         // USER should now own exactly 1 NFT after minting once
