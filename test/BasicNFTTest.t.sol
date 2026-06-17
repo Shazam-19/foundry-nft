@@ -90,15 +90,24 @@ contract BasicNFTTest is Test {
         // Second mint should land on token ID 1 (counter started at 0, incremented once)
         string memory actualSecondURI = basicNft.tokenURI(1);
 
-        assertEq(
-            keccak256(abi.encodePacked(secondURI)),
-            keccak256(abi.encodePacked(actualSecondURI))
-        );
+        assertEq(keccak256(abi.encodePacked(secondURI)), keccak256(abi.encodePacked(actualSecondURI)));
 
         // USER minted twice, so balance should now be 2
         assertEq(basicNft.balanceOf(USER), 2);
     }
-    
+
+    /**
+     * @notice Tests that ownerOf() correctly reports who owns a freshly minted token.
+     * @dev This confirms _safeMint() inside mintNft() actually assigns ownership
+     *      to msg.sender (USER in this case), not to some default/zero address.
+     */
+    function testOwnerOfMintedTokenIsCorrect() public {
+        vm.prank(USER);
+        basicNft.mintNft(PUG);
+
+        address actualOwner = basicNft.ownerOf(0);
+        assertEq(actualOwner, USER);
+    }
 }
 
 /* Comparing two strings in 'chisel'
