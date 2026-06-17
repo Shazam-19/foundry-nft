@@ -72,6 +72,33 @@ contract BasicNFTTest is Test {
         // assertEq gives clearer failure output than assert() (shows both values on failure)
         assertEq(expectedBalance, actualBalance);
     }
+
+    /**
+     * @notice Tests that token IDs increment correctly across multiple mints.
+     * @dev Mints two NFTs in a row and checks that the second one gets ID 1,
+     *      proving the internal s_tokenIdCounter increments after every mint.
+     *      Also confirms each token's URI was stored independently.
+     */
+    function testTokenCounterIncrementsOnMultipleMints() public {
+        vm.prank(USER);
+        basicNft.mintNft(PUG);
+
+        string memory secondURI = "ipfs://second-token-uri";
+        vm.prank(USER);
+        basicNft.mintNft(secondURI);
+
+        // Second mint should land on token ID 1 (counter started at 0, incremented once)
+        string memory actualSecondURI = basicNft.tokenURI(1);
+
+        assertEq(
+            keccak256(abi.encodePacked(secondURI)),
+            keccak256(abi.encodePacked(actualSecondURI))
+        );
+
+        // USER minted twice, so balance should now be 2
+        assertEq(basicNft.balanceOf(USER), 2);
+    }
+    
 }
 
 /* Comparing two strings in 'chisel'
