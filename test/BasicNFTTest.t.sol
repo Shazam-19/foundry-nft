@@ -4,6 +4,7 @@ pragma solidity ^0.8.18;
 import {Test} from "forge-std/Test.sol";
 import {DeployBasicNFT} from "../script/DeployBasicNFT.s.sol";
 import {BasicNFT} from "../src/BasicNFT.sol";
+import {IERC721Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 
 contract BasicNFTTest is Test {
     DeployBasicNFT public deploy;
@@ -129,6 +130,20 @@ contract BasicNFTTest is Test {
         // Confirm ownership didn't get mixed up between the two mints
         assertEq(basicNft.ownerOf(0), USER);
         assertEq(basicNft.ownerOf(1), USER2);
+    }
+
+    /**
+     * @notice Tests that querying tokenURI() for a token that was never minted
+     *         reverts, following ERC721 best practice.
+     * @dev tokenURI() calls _requireOwned(tokenId) internally, which reverts with
+     *      ERC721NonexistentToken(tokenId) if the token has no owner (i.e., was
+     *      never minted or has been burned). vm.expectRevert() asserts that the
+     *      very next call reverts; without it, this test would fail since a
+     *      successful call wouldn't trigger a revert.
+     */
+    function testTokenURIRevertsForNonexistentToken() public {
+        vm.expectRevert(abi.encodeWithSelector(IERC721Errors.ERC721NonexistentToken.selector, 0));
+        basicNft.tokenURI(0);
     }
 }
 
