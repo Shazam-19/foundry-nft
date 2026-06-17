@@ -108,6 +108,28 @@ contract BasicNFTTest is Test {
         address actualOwner = basicNft.ownerOf(0);
         assertEq(actualOwner, USER);
     }
+
+    /**
+     * @notice Tests that different users can each mint their own NFTs independently.
+     * @dev Mints from two different addresses and checks that each owns exactly
+     *      one token, and that their balances don't interfere with each other.
+     */
+    function testMultipleUsersCanMintIndependently() public {
+        address USER2 = makeAddr("userTwo");
+
+        vm.prank(USER);
+        basicNft.mintNft(PUG);
+
+        vm.prank(USER2);
+        basicNft.mintNft("ipfs://another-uri");
+
+        assertEq(basicNft.balanceOf(USER), 1);
+        assertEq(basicNft.balanceOf(USER2), 1);
+
+        // Confirm ownership didn't get mixed up between the two mints
+        assertEq(basicNft.ownerOf(0), USER);
+        assertEq(basicNft.ownerOf(1), USER2);
+    }
 }
 
 /* Comparing two strings in 'chisel'
