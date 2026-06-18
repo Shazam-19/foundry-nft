@@ -4,6 +4,7 @@ pragma solidity ^0.8.18;
 import {Test} from "forge-std/Test.sol";
 import {DeployBasicNFT} from "../script/DeployBasicNFT.s.sol";
 import {BasicNFT} from "../src/BasicNFT.sol";
+import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {IERC721Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 
 contract BasicNFTTest is Test {
@@ -144,6 +145,27 @@ contract BasicNFTTest is Test {
     function testTokenURIRevertsForNonexistentToken() public {
         vm.expectRevert(abi.encodeWithSelector(IERC721Errors.ERC721NonexistentToken.selector, 0));
         basicNft.tokenURI(0);
+    }
+
+    /**
+     * @notice Tests that minting emits the ERC721 Transfer event with correct arguments.
+     * @dev The ERC721 standard requires a Transfer event on every mint, with the
+     *      `from` address set to address(0) to signal that the token was created
+     *      (not transferred from an existing owner).
+     *
+     *      vm.expectEmit(checkTopic1, checkTopic2, checkTopic3, checkData) tells
+     *      Foundry to intercept the next emitted event and verify each argument:
+     *      - topic1 = `from`    (address(0) for mints)
+     *      - topic2 = `to`      (USER)
+     *      - topic3 = `tokenId` (0)
+     *      The test fails if the event is never emitted or any argument doesn't match.
+     */
+    function testMintEmitsTransferEvent() public {
+        vm.expectEmit(true, true, true, false);
+        emit IERC721.Transfer(address(0), USER, 0);
+
+        vm.prank(USER);
+        basicNft.mintNft(PUG);
     }
 }
 
