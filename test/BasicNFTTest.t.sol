@@ -167,6 +167,18 @@ contract BasicNFTTest is Test {
         vm.prank(USER);
         basicNft.mintNft(PUG);
     }
+
+    /**
+     * @notice Tests that querying the balance of the zero address reverts.
+     * @dev OZ ERC721 v5 explicitly prohibits address(0) as a valid owner.
+     *      Calling balanceOf(address(0)) reverts with ERC721InvalidOwner(address(0)).
+     *      This follows the ERC721 standard, which states the zero address is never
+     *      a legitimate token holder — it represents burned or non-existent ownership.
+     */
+    function testBalanceOfZeroAddressReverts() public {
+        vm.expectRevert(abi.encodeWithSelector(IERC721Errors.ERC721InvalidOwner.selector, address(0)));
+        basicNft.balanceOf(address(0));
+    }
 }
 
 /* Comparing two strings in 'chisel'
