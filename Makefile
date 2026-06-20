@@ -37,19 +37,19 @@ ifeq ($(findstring --network sepolia,$(ARGS)),--network sepolia)
 endif
 
 deploy:
-	@forge script script/DeployBasicNft.s.sol:DeployBasicNft $(NETWORK_ARGS)
+	@forge script script/DeployBasicNft.s.sol:DeployBasicNFT $(NETWORK_ARGS)
 
 mint:
-	@forge script script/Interactions.s.sol:MintBasicNft ${NETWORK_ARGS}
+	@forge script script/Interactions.s.sol:MintBasicNFT ${NETWORK_ARGS}
 
 deployMood:
-	@forge script script/DeployMoodNft.s.sol:DeployMoodNft $(NETWORK_ARGS)
+	@forge script script/DeployMoodNft.s.sol:DeployMoodNFT $(NETWORK_ARGS)
 
 mintMoodNft:
-	@forge script script/Interactions.s.sol:MintMoodNft $(NETWORK_ARGS)
+	@forge script script/Interactions.s.sol:MintMoodNFT $(NETWORK_ARGS)
 
 flipMoodNft:
-	@forge script script/Interactions.s.sol:FlipMoodNft $(NETWORK_ARGS)
+	@forge script script/Interactions.s.sol:FlipMoodNFT $(NETWORK_ARGS)
 
 zkdeploy: 
 	@forge create src/OurToken.sol:OurToken --rpc-url http://127.0.0.1:8011 --private-key $(DEFAULT_ZKSYNC_LOCAL_KEY) --legacy --zksync
