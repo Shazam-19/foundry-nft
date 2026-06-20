@@ -1,66 +1,45 @@
-## Foundry
+## Project Flow
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+This project is a tiny ERC721 NFT collection called "Dogie" (symbol `DOG`) where anyone can mint a token by handing the contract a metadata URI (usually an IPFS link to a JSON file describing the image/attributes).
 
-Foundry consists of:
+**The three pieces and how they connect:**
 
-- **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
-- **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
-- **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
-- **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+1. **`BasicNFT.sol`** — the actual contract.
+   - `mintNft(uri)` — call this to mint yourself a new token. It saves your URI, mints the token to you, then bumps the counter for the next person.
+   - `tokenURI(id)` — given a token ID, returns its metadata URI. Reverts if that ID was never minted.
 
-## Documentation
+2. **`DeployBasicNFT.s.sol`** — a script to put `BasicNFT` on-chain (local Anvil node, a testnet, or mainnet).
+   - Run it once per chain you want to deploy to.
 
-https://book.getfoundry.sh/
+3. **`MintBasicNFT.s.sol`** — a script to interact with an already-deployed contract.
+   - `run()` automatically finds the most recent `BasicNFT` deployment on the chain you're targeting (via `foundry-devops`), then calls `mintNFTOnContract()` to mint one NFT using the sample "PUG" URI.
 
-## Usage
+## Typical Local Workflow with Foundry
 
-### Build
+```bash
+# 1. Start a local blockchain
+anvil
 
-```shell
-$ forge build
+# 2. Deploy the contract (in another terminal)
+forge script script/DeployBasicNFT.s.sol --rpc-url http://127.0.0.1:8545 --private-key <anvil_private_key> --broadcast
+
+# 3. Mint an NFT on it
+forge script script/MintBasicNFT.s.sol --rpc-url http://127.0.0.1:8545 --private-key <anvil_private_key> --broadcast
+
+# 4. Run your test suite
+forge test -vv
 ```
 
-### Test
+## Deploying to Sepolia
 
-```shell
-$ forge test
+Once you're ready to move off a local Anvil node, the same deploy/mint scripts run against Sepolia through the project's Makefile:
+
+```bash
+# Deploy BasicNFT to Sepolia
+make deploy ARGS="--network sepolia"
+
+# Mint an NFT on the Sepolia deployment
+make mint ARGS="--network sepolia"
 ```
 
-### Format
-
-```shell
-$ forge fmt
-```
-
-### Gas Snapshots
-
-```shell
-$ forge snapshot
-```
-
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+These wrap the same `forge script` calls used locally, just pointed at the Sepolia RPC URL and your funded testnet account (configured via your `.env` and Makefile network settings).
