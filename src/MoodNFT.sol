@@ -11,6 +11,8 @@ import {Base64} from "@openzeppelin/contracts/utils/Base64.sol";
  * @dev NFT metadata is stored entirely on-chain using Base64-encoded JSON and SVG images.
  * */
 contract MoodNFT is ERC721 {
+    error MoodNFT__CantFlipMoodNotOwner();
+
     /// @dev Tracks the next token ID to be minted.
     uint256 private s_tokenIdCounter;
 
@@ -120,5 +122,17 @@ contract MoodNFT is ERC721 {
                 )
             )
         );
+    }
+
+    function flipMood(uint256 tokenId) public {
+        address owner = _requireOwned(tokenId);
+
+        if ((msg.sender != owner) && (getApproved(tokenId) != msg.sender) && !isApprovedForAll(owner, msg.sender)) {
+            revertMoodNFT__CantFlipMoodNotOwner();
+        }
+        Mood currentMood = s_tokenIdToMood[tokenId];
+        Mood newMood = currentMood == Mood.HAPPY ? Mood.SAD : Mood.HAPPY;
+
+        s_tokenIdToMood[tokenId] = newMood;
     }
 }
