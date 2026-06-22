@@ -26,6 +26,12 @@ contract MoodNFTTest is Test {
     /// @dev makeAddr() creates a deterministic address for testing.
     address public USER = makeAddr("user");
 
+    /// @notice Address used to test token approvals.
+    address public APPROVED = makeAddr("approved");
+
+    /// @notice Address used to test unauthorized access attempts.
+    address public ATTACKER = makeAddr("attacker");
+
     /**
      * @notice Deploys a fresh MoodNFT contract before each test.
      * @dev Foundry automatically executes setUp() before every test function.
@@ -74,5 +80,47 @@ contract MoodNFTTest is Test {
 
         /// Print the metadata URI to the terminal for inspection.
         console.log("Token URI:", uri);
+    }
+
+    /**
+     * @notice Verifies that an NFT owner can successfully flip the mood of their NFT.
+     * @dev This test validates the mood transition workflow:
+     *      1. Mint a new NFT as USER.
+     *      2. Confirm the NFT starts with the default HAPPY mood.
+     *      3. Flip the NFT mood as the owner.
+     *      4. Confirm the mood changes from HAPPY to SAD.
+     *
+     * Expected Result:
+     * - The NFT is initially assigned the HAPPY mood when minted.
+     * - The owner can successfully call flipMood().
+     * - The mood changes from HAPPY to SAD after the call.
+     *
+     * Example:
+     * - Before flip: HAPPY
+     * - After flip: SAD
+     */
+    function testOwnerCanFlipMood() public {
+        /// Simulate USER as msg.sender and mint a new NFT.
+        vm.prank(USER);
+        moodNft.mintNft();
+
+        /// The first NFT minted by the contract receives tokenId 0.
+        uint256 tokenId = 0;
+
+        /// Capture the NFT's mood before performing the flip operation.
+        MoodNFT.Mood moodBefore = moodNft.getMood(tokenId);
+
+        /// Simulate the NFT owner calling flipMood().
+        vm.prank(USER);
+        moodNft.flipMood(tokenId);
+
+        /// Capture the NFT's mood after the flip operation.
+        MoodNFT.Mood moodAfter = moodNft.getMood(tokenId);
+
+        /// Verify that newly minted NFTs start with the HAPPY mood.
+        assertEq(uint256(moodBefore), uint256(MoodNFT.Mood.HAPPY));
+
+        /// Verify that flipMood() successfully changed the mood to SAD.
+        assertEq(uint256(moodAfter), uint256(MoodNFT.Mood.SAD));
     }
 }
