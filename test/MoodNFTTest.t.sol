@@ -216,4 +216,43 @@ contract MoodNFTTest is Test {
         /// Verify the operator successfully changed the mood to SAD.
         assertEq(uint256(moodAfter), uint256(MoodNFT.Mood.SAD));
     }
+
+    /**
+     * @notice Verifies that unauthorized users cannot flip an NFT's mood.
+     * @dev This test validates the access control mechanism:
+     *      1. Mint a new NFT as USER.
+     *      2. Attempt to flip the NFT mood as ATTACKER.
+     *      3. Verify the transaction reverts with the expected custom error.
+     *
+     * Expected Result:
+     * - The transaction reverts.
+     * - The NFT mood remains unchanged.
+     * - The custom error MoodNFT__CantFlipMoodNotOwner is emitted.
+     *
+     * Example:
+     * - USER owns token #0.
+     * - ATTACKER attempts to call flipMood().
+     * - The transaction reverts.
+     */
+    function testNonOwnerCannotFlipMood() public {
+        /// Simulate USER minting a new NFT.
+        vm.prank(USER);
+        moodNft.mintNft();
+
+        /// The first NFT minted by the contract receives tokenId 0.
+        uint256 tokenId = 0;
+
+        MoodNFT.Mood moodBefore = moodNft.getMood(tokenId);
+
+        /// Expect the transaction to revert with the custom authorization error.
+        vm.expectRevert(MoodNFT.MoodNFT__CantFlipMoodNotOwner.selector);
+
+        /// Simulate an unauthorized user attempting to flip the NFT mood.
+        vm.prank(ATTACKER);
+        moodNft.flipMood(tokenId);
+
+        MoodNFT.Mood moodAfter = moodNft.getMood(tokenId);
+
+        assertEq(uint256(moodBefore), uint256(moodAfter));
+    }
 }
