@@ -2,8 +2,8 @@
 pragma solidity ^0.8.18;
 
 import {Test} from "forge-std/Test.sol";
-import {DeployBasicNFT} from "../script/DeployBasicNFT.s.sol";
-import {BasicNFT} from "../src/BasicNFT.sol";
+import {DeployBasicNFT} from "../../script/DeployBasicNFT.s.sol";
+import {BasicNFT} from "../../src/BasicNFT.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {IERC721Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 
