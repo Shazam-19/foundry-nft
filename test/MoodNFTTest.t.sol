@@ -124,6 +124,11 @@ contract MoodNFTTest is Test {
         assertEq(uint256(moodAfter), uint256(MoodNFT.Mood.SAD));
     }
 
+    // ERC721 authorization check:
+    // - Owner: can always manage their NFT.
+    // - Approved address: can manage a specific token via approve().
+    // - Operator: can manage all owner's NFTs via setApprovalForAll().
+
     /**
      * @notice Verifies that an approved address can successfully flip an NFT's mood.
      * @dev This test validates the ERC721 approval workflow:
@@ -162,6 +167,53 @@ contract MoodNFTTest is Test {
         assertEq(uint256(moodBefore), uint256(MoodNFT.Mood.HAPPY));
 
         /// Verify the approved address successfully changed the mood to SAD.
+        assertEq(uint256(moodAfter), uint256(MoodNFT.Mood.SAD));
+    }
+
+    /**
+     * @notice Verifies that an approved operator can successfully flip an NFT's mood.
+     * @dev This test validates the operator approval workflow:
+     *      1. Mint a new NFT as USER.
+     *      2. Grant operator permissions using setApprovalForAll().
+     *      3. Confirm the NFT starts with the HAPPY mood.
+     *      4. Flip the mood using the approved operator.
+     *      5. Confirm the mood changes from HAPPY to SAD.
+     *
+     * Expected Result:
+     * - An approved operator can call flipMood().
+     * - The NFT mood changes from HAPPY to SAD.
+     *
+     * Example:
+     * - USER owns token #0.
+     * - USER approves APPROVED as an operator.
+     * - APPROVED successfully flips the NFT mood.
+     */
+    function testOperatorCanFlipMood() public {
+        /// Simulate USER minting a new NFT.
+        vm.prank(USER);
+        moodNft.mintNft();
+
+        /// The first NFT minted by the contract receives tokenId 0.
+        uint256 tokenId = 0;
+
+        /// Grant APPROVED operator permissions for all NFTs owned by USER.
+        vm.prank(USER);
+        moodNft.setApprovalForAll(APPROVED, true);
+
+        /// Capture the NFT's mood before the update.
+        MoodNFT.Mood moodBefore = moodNft.getMood(tokenId);
+
+        /// Simulate the approved operator flipping the mood.
+        vm.prank(APPROVED);
+        moodNft.flipMood(tokenId);
+
+        /// Capture the NFT's mood after the update.
+        MoodNFT.Mood moodAfter = moodNft.getMood(tokenId);
+
+        /// Verify the NFT initially starts in the HAPPY state.
+        assertEq(uint256(moodBefore), uint256(MoodNFT.Mood.HAPPY));
+
+        /// Verify the operator successfully changed the mood to SAD.
         assertEq(uint256(moodAfter), uint256(MoodNFT.Mood.SAD));
     }
 }
