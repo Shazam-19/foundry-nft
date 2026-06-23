@@ -123,4 +123,45 @@ contract MoodNFTTest is Test {
         /// Verify that flipMood() successfully changed the mood to SAD.
         assertEq(uint256(moodAfter), uint256(MoodNFT.Mood.SAD));
     }
+
+    /**
+     * @notice Verifies that an approved address can successfully flip an NFT's mood.
+     * @dev This test validates the ERC721 approval workflow:
+     *      1. Mint a new NFT as USER.
+     *      2. Approve APPROVED to manage the NFT.
+     *      3. Confirm the NFT starts with the HAPPY mood.
+     *      4. Flip the mood using the approved address.
+     *      5. Confirm the mood changes from HAPPY to SAD.
+     *
+     * Expected Result:
+     * - An approved address can call flipMood().
+     * - The NFT mood changes from HAPPY to SAD.
+     */
+    function testApprovedAddressCanFlipMood() public {
+        /// Simulate USER minting a new NFT.
+        vm.prank(USER);
+        moodNft.mintNft();
+
+        uint256 tokenId = 0;
+
+        /// Grant approval for APPROVED to manage this NFT.
+        vm.prank(USER);
+        moodNft.approve(APPROVED, tokenId);
+
+        /// Capture the NFT's mood before the update.
+        MoodNFT.Mood moodBefore = moodNft.getMood(tokenId);
+
+        /// Simulate the approved address flipping the mood.
+        vm.prank(APPROVED);
+        moodNft.flipMood(tokenId);
+
+        /// Capture the NFT's mood after the update.
+        MoodNFT.Mood moodAfter = moodNft.getMood(tokenId);
+
+        /// Verify the NFT initially starts in the HAPPY state.
+        assertEq(uint256(moodBefore), uint256(MoodNFT.Mood.HAPPY));
+
+        /// Verify the approved address successfully changed the mood to SAD.
+        assertEq(uint256(moodAfter), uint256(MoodNFT.Mood.SAD));
+    }
 }
