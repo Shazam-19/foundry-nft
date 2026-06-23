@@ -221,18 +221,22 @@ contract MoodNFTTest is Test {
      * @notice Verifies that unauthorized users cannot flip an NFT's mood.
      * @dev This test validates the access control mechanism:
      *      1. Mint a new NFT as USER.
-     *      2. Attempt to flip the NFT mood as ATTACKER.
-     *      3. Verify the transaction reverts with the expected custom error.
+     *      2. Record the NFT's initial mood.
+     *      3. Attempt to flip the NFT mood as ATTACKER.
+     *      4. Verify the transaction reverts with the expected custom error.
+     *      5. Verify the NFT's mood remains unchanged.
      *
      * Expected Result:
      * - The transaction reverts.
      * - The NFT mood remains unchanged.
      * - The custom error MoodNFT__CantFlipMoodNotOwner is emitted.
+     * - The NFT remains in its original HAPPY state.
      *
      * Example:
      * - USER owns token #0.
      * - ATTACKER attempts to call flipMood().
      * - The transaction reverts.
+     * - The NFT mood remains HAPPY.
      */
     function testNonOwnerCannotFlipMood() public {
         /// Simulate USER minting a new NFT.
@@ -242,7 +246,11 @@ contract MoodNFTTest is Test {
         /// The first NFT minted by the contract receives tokenId 0.
         uint256 tokenId = 0;
 
+        /// Capture the NFT's mood before the unauthorized action.
         MoodNFT.Mood moodBefore = moodNft.getMood(tokenId);
+
+        /// Verify the NFT starts in the HAPPY state.
+        assertEq(uint256(moodBefore), uint256(MoodNFT.Mood.HAPPY));
 
         /// Expect the transaction to revert with the custom authorization error.
         vm.expectRevert(MoodNFT.MoodNFT__CantFlipMoodNotOwner.selector);
@@ -251,8 +259,13 @@ contract MoodNFTTest is Test {
         vm.prank(ATTACKER);
         moodNft.flipMood(tokenId);
 
+        /// Capture the NFT's mood after the failed transaction.
         MoodNFT.Mood moodAfter = moodNft.getMood(tokenId);
 
+        /// Verify the mood was not modified by the unauthorized caller.
+        assertEq(uint256(moodAfter), uint256(MoodNFT.Mood.HAPPY));
+
+        /// Verify the mood remained unchanged.
         assertEq(uint256(moodBefore), uint256(moodAfter));
     }
 }
