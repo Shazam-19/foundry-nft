@@ -93,7 +93,7 @@ contract MoodNFTTest is Test {
      * - The first NFT minted receives token ID 0.
      * - Calling tokenURI(0) should return valid metadata.
      */
-    function testViewTokenURI() public {
+    function testViewTokenURIIntegration() public {
         /// Simulate USER as msg.sender for the next transaction.
         vm.prank(USER);
 
@@ -131,7 +131,7 @@ contract MoodNFTTest is Test {
      * - Before flip: HAPPY
      * - After flip: SAD
      */
-    function testOwnerCanFlipMood() public {
+    function testOwnerCanFlipMoodIntegration() public {
         /// Simulate USER as msg.sender and mint a new NFT.
         vm.prank(USER);
         moodNft.mintNft();
@@ -174,7 +174,7 @@ contract MoodNFTTest is Test {
      * - An approved address can call flipMood().
      * - The NFT mood changes from HAPPY to SAD.
      */
-    function testApprovedAddressCanFlipMood() public {
+    function testApprovedAddressCanFlipMoodIntegration() public {
         /// Simulate USER minting a new NFT.
         vm.prank(USER);
         moodNft.mintNft();
@@ -220,7 +220,7 @@ contract MoodNFTTest is Test {
      * - USER approves APPROVED as an operator.
      * - APPROVED successfully flips the NFT mood.
      */
-    function testOperatorCanFlipMood() public {
+    function testOperatorCanFlipMoodIntegration() public {
         /// Simulate USER minting a new NFT.
         vm.prank(USER);
         moodNft.mintNft();
@@ -270,7 +270,7 @@ contract MoodNFTTest is Test {
      * - The transaction reverts.
      * - The NFT mood remains HAPPY.
      */
-    function testNonOwnerCannotFlipMood() public {
+    function testNonOwnerCannotFlipMoodIntegration() public {
         /// Simulate USER minting a new NFT.
         vm.prank(USER);
         moodNft.mintNft();
