@@ -75,6 +75,10 @@ contract MoodNFTTest is Test {
         */
         happySvgImageUri = deployer.svgToImageURI(vm.readFile("./img/happy.svg"));
         sadSvgImageUri = deployer.svgToImageURI(vm.readFile("./img/sad.svg"));
+
+        vm.etch(USER, "");
+        vm.etch(APPROVED, "");
+        vm.etch(ATTACKER, "");
     }
 
     /**

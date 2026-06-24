@@ -43,6 +43,10 @@ contract MoodNFTTest is Test {
      */
     function setUp() external {
         moodNft = new MoodNFT(SAD_SVG_IMAGE_URI, HAPPY_SVG_IMAGE_URI);
+
+        vm.etch(USER, "");
+        vm.etch(APPROVED, "");
+        vm.etch(ATTACKER, "");
     }
 
     /**

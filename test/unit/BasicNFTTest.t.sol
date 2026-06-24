@@ -19,6 +19,8 @@ contract BasicNFTTest is Test {
     function setUp() external {
         deploy = new DeployBasicNFT();
         basicNft = deploy.run();
+
+        vm.etch(USER, "");
     }
 
     function testNameIsCorrect() public view {
