@@ -1,7 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
+// OpenZeppelin's standard ERC721 implementation; provides the core NFT
+// logic (ownership tracking, transfers, approvals, minting via
+// _safeMint()) that MoodNFT contract inherits and builds on top of.
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+
+// Used to Base64-encode the JSON metadata returned by tokenURI(), so the
+// full metadata (name, mood attribute, image) can be embedded directly
+// in the data URI instead of pointing to an off-chain file.
 import {Base64} from "@openzeppelin/contracts/utils/Base64.sol";
 
 /***
@@ -52,7 +59,7 @@ contract MoodNFT is ERC721 {
      *
      * Example:
      * - If token ID 0 is minted, its initial mood will be HAPPY.
-     *
+     * - The next ID now is 1
      */
     function mintNft() public {
         _safeMint(msg.sender, s_tokenIdCounter);
@@ -125,6 +132,46 @@ contract MoodNFT is ERC721 {
     }
 
     /**
+     * @notice Toggles an NFT's mood between HAPPY and SAD.
+     * @dev Authorization follows the same ERC721 access model as transfers:
+     *      the caller must be the token's owner, an address explicitly
+     *      approved for this specific tokenId, or an operator approved for
+     *      all of the owner's tokens. Anyone else is rejected.
+     *
+     *      Since Mood is a simple two-value enum, "flipping" just means
+     *      switching to whichever value isn't currently set; there's no
+     *      need to track or pass in a target mood.
+     * @param tokenId The ID of the NFT whose mood should be flipped.
+     *
+     * Example:
+     * - Token currently HAPPY -> flipMood() -> token becomes SAD.
+     * - Token currently SAD   -> flipMood() -> token becomes HAPPY.
+     */
+    function flipMood(uint256 tokenId) public {
+        // _requireOwned() reverts if tokenId was never minted (or was
+        // burned), and returns the current owner if it exists; reusing
+        // that owner below avoids a second lookup.
+        address owner = _requireOwned(tokenId);
+
+        // Reject the call unless msg.sender is the owner, is approved for
+        // this specific token, or is an approved operator for all of the
+        // owner's tokens.
+        if ((msg.sender != owner) && (getApproved(tokenId) != msg.sender) && !isApprovedForAll(owner, msg.sender)) {
+            revert MoodNFT__CantFlipMoodNotOwner();
+        }
+
+        // Read the token's current mood so we know which way to flip it.
+        Mood currentMood = s_tokenIdToMood[tokenId];
+
+        // Flip to the opposite mood: HAPPY -> SAD, or SAD -> HAPPY.
+        Mood newMood = currentMood == Mood.HAPPY ? Mood.SAD : Mood.HAPPY;
+
+        // Persist the new mood — this is what tokenURI() reads to decide
+        // which image and "Mood" attribute to embed in the metadata.
+        s_tokenIdToMood[tokenId] = newMood;
+    }
+
+    /**
      * @notice Returns the current mood of an NFT.
      * @param tokenId The NFT identifier.
      * @return The current mood of the NFT.
@@ -132,17 +179,5 @@ contract MoodNFT is ERC721 {
     function getMood(uint256 tokenId) external view returns (Mood) {
         _requireOwned(tokenId);
         return s_tokenIdToMood[tokenId];
-    }
-
-    function flipMood(uint256 tokenId) public {
-        address owner = _requireOwned(tokenId);
-
-        if ((msg.sender != owner) && (getApproved(tokenId) != msg.sender) && !isApprovedForAll(owner, msg.sender)) {
-            revert MoodNFT__CantFlipMoodNotOwner();
-        }
-        Mood currentMood = s_tokenIdToMood[tokenId];
-        Mood newMood = currentMood == Mood.HAPPY ? Mood.SAD : Mood.HAPPY;
-
-        s_tokenIdToMood[tokenId] = newMood;
     }
 }
