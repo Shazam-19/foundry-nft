@@ -86,6 +86,11 @@ contract MoodNFTTest is Test {
         console.log("Token URI:", uri);
     }
 
+    // ERC721 authorization check:
+    // - Owner: can always manage their NFT.
+    // - Approved address: can manage a specific token via approve().
+    // - Operator: can manage all owner's NFTs via setApprovalForAll().
+
     /**
      * @notice Verifies that an NFT owner can successfully flip the mood of their NFT.
      * @dev This test validates the mood transition workflow:
@@ -127,11 +132,6 @@ contract MoodNFTTest is Test {
         /// Verify that flipMood() successfully changed the mood to SAD.
         assertEq(uint256(moodAfter), uint256(MoodNFT.Mood.SAD));
     }
-
-    // ERC721 authorization check:
-    // - Owner: can always manage their NFT.
-    // - Approved address: can manage a specific token via approve().
-    // - Operator: can manage all owner's NFTs via setApprovalForAll().
 
     /**
      * @notice Verifies that an approved address can successfully flip an NFT's mood.

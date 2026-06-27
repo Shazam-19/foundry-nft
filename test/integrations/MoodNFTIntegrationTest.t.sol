@@ -52,7 +52,7 @@ contract MoodNFTTest is Test {
      * @dev Foundry automatically executes setUp() before every test function.
      *
      * Workflow:
-     * 1. Deploy MoodNFT via DeployMoodNFT — internally this reads
+     * 1. Deploy MoodNFT via DeployMoodNFT; internally this reads
      *    `./img/sad.svg` and `./img/happy.svg`, base64-encodes each, and
      *    passes both image URIs into MoodNFT's constructor.
      * 2. Recompute those same image URIs here (same files, same
@@ -76,6 +76,17 @@ contract MoodNFTTest is Test {
         happySvgImageUri = deployer.svgToImageURI(vm.readFile("./img/happy.svg"));
         sadSvgImageUri = deployer.svgToImageURI(vm.readFile("./img/sad.svg"));
 
+        /* On a forked chain (e.g. --fork-url sepolia), makeAddr()-derived
+           addresses aren't guaranteed to be empty; they inherit whatever
+           real state already exists at that address on the live chain. If
+           one of them happens to have contract code, _safeMint()'s
+           onERC721Received() receiver check will call into that code
+           instead of treating the address as a plain EOA, which can revert
+           unpredictably depending on what that code does. vm.etch(addr, "")
+           wipes the code at each address back to empty, only in this local
+           forked copy of state — it never touches the real chain — so tests
+           behave the same whether run locally or against a fork.
+        */
         vm.etch(USER, "");
         vm.etch(APPROVED, "");
         vm.etch(ATTACKER, "");
@@ -118,6 +129,11 @@ contract MoodNFTTest is Test {
         console.log("Token URI:", uri);
     }
 
+    // ERC721 authorization check:
+    // - Owner: can always manage their NFT.
+    // - Approved address: can manage a specific token via approve().
+    // - Operator: can manage all owner's NFTs via setApprovalForAll().
+
     /**
      * @notice Verifies that an NFT owner can successfully flip the mood of their NFT.
      * @dev This test validates the mood transition workflow:
@@ -159,11 +175,6 @@ contract MoodNFTTest is Test {
         /// Verify that flipMood() successfully changed the mood to SAD.
         assertEq(uint256(moodAfter), uint256(MoodNFT.Mood.SAD));
     }
-
-    // ERC721 authorization check:
-    // - Owner: can always manage their NFT.
-    // - Approved address: can manage a specific token via approve().
-    // - Operator: can manage all owner's NFTs via setApprovalForAll().
 
     /**
      * @notice Verifies that an approved address can successfully flip an NFT's mood.
